@@ -1,0 +1,116 @@
+@model HealthConnect.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 py-12">
+    <div class="max-w-md w-full">
+
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-heartbeat text-white text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome back</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">Sign in to your HealthConnect account</p>
+        </div>
+
+        <div class="card p-8">
+            <!-- Success message -->
+            @if (TempData["Success"] != null)
+            {
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700
+                            text-green-800 dark:text-green-300 px-4 py-3 rounded-xl mb-5 text-sm flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span>@TempData["Success"]</span>
+                </div>
+            }
+
+            <form asp-controller="Account" asp-action="Login"
+                  asp-route-returnUrl="@ViewBag.ReturnUrl"
+                  method="post" class="space-y-5" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200
+                            dark:border-red-800 p-4 text-red-800 dark:text-red-300 text-sm"></div>
+
+                <!-- Email -->
+                <div>
+                    <label asp-for="Email" class="form-label">Email Address</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 pointer-events-none">
+                            <i class="fas fa-envelope text-sm"></i>
+                        </span>
+                        <input asp-for="Email" class="form-input pl-10"
+                               placeholder="you@example.com" autocomplete="email" />
+                    </div>
+                    <span asp-validation-for="Email" class="form-error"></span>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label asp-for="Password" class="form-label">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 pointer-events-none">
+                            <i class="fas fa-lock text-sm"></i>
+                        </span>
+                        <input asp-for="Password" type="password" id="passwordInput"
+                               class="form-input pl-10 pr-10"
+                               placeholder="Your password" autocomplete="current-password" />
+                        <button type="button" id="togglePassword"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                aria-label="Show or hide password">
+                            <i class="fas fa-eye text-sm" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="form-error"></span>
+                </div>
+
+                <!-- Remember me -->
+                <div class="flex items-center gap-2">
+                    <input asp-for="RememberMe" type="checkbox"
+                           class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                    <label asp-for="RememberMe" class="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                        Remember me
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary w-full py-3 text-base">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                </button>
+            </form>
+
+            <!-- Demo credentials -->
+            <div class="mt-5 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-xs text-blue-700 dark:text-blue-300">
+                <p class="font-semibold mb-1"><i class="fas fa-info-circle mr-1"></i>Demo Accounts</p>
+                <p>Patient: patient@demo.com / Password123!</p>
+                <p>Admin: admin@healthconnect.com / Admin123!</p>
+            </div>
+        </div>
+
+        <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+            Don't have an account?
+            <a asp-controller="Account" asp-action="Register"
+               class="text-primary-600 dark:text-primary-400 font-medium hover:underline">
+                Register here
+            </a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.getElementById('togglePassword').addEventListener('click', function () {
+        const input = document.getElementById('passwordInput');
+        const icon  = document.getElementById('eyeIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    });
+</script>
+}

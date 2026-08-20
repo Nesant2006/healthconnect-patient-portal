@@ -1,0 +1,226 @@
+@model HealthConnect.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "My Dashboard";
+}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            Welcome back, @User.Identity?.Name!
+        </h1>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">Here's your health summary.</p>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="stat-card">
+            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-calendar text-blue-600 dark:text-blue-400"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.TotalAppointments</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Total</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-clock text-yellow-600 dark:text-yellow-400"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.PendingAppointments</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Pending</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="w-10 h-10 bg-green-100 dark:bg-green-900/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-check-circle text-green-600 dark:text-green-400"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.CompletedAppointments</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Completed</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-times-circle text-red-600 dark:text-red-400"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.CancelledAppointments</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Cancelled</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Upcoming Appointments -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Notifications -->
+            @if (Model.Notifications.Any(n => !n.IsRead))
+            {
+                <div class="card p-4 border-l-4 border-primary-500" aria-live="polite">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i class="fas fa-bell text-primary-500"></i>
+                        <h2 class="font-semibold text-gray-900 dark:text-white">Notifications</h2>
+                    </div>
+                    @foreach (var n in Model.Notifications.Where(n => !n.IsRead).Take(3))
+                    {
+                        <div class="py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">@n.Title</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">@n.Message</p>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Upcoming -->
+            <div class="card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-semibold text-gray-900 dark:text-white">Upcoming Appointments</h2>
+                    <a asp-controller="Appointment" asp-action="Create" class="btn-primary text-xs">
+                        <i class="fas fa-plus mr-1"></i>Book New
+                    </a>
+                </div>
+
+                @if (!Model.UpcomingAppointments.Any())
+                {
+                    <div class="text-center py-8 text-gray-400 dark:text-gray-500">
+                        <i class="fas fa-calendar-times text-4xl mb-3 block"></i>
+                        <p class="text-sm">No upcoming appointments.</p>
+                        <a asp-controller="Appointment" asp-action="Create" class="btn-primary text-sm mt-3 inline-flex">
+                            Book your first appointment
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-3">
+                        @foreach (var appt in Model.UpcomingAppointments)
+                        {
+                            <div class="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                <div class="text-center bg-primary-600 text-white rounded-xl px-3 py-2 flex-shrink-0">
+                                    <p class="text-lg font-bold leading-none">@appt.AppointmentDate.Day</p>
+                                    <p class="text-xs opacity-80">@appt.AppointmentDate.ToString("MMM")</p>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-gray-900 dark:text-white truncate">Dr. @appt.DoctorName</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">@appt.Specialty · @appt.AppointmentTime</p>
+                                </div>
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    @if (appt.IsUrgent)
+                                    {
+                                        <span class="badge badge-urgent">Urgent</span>
+                                    }
+                                    <span class="badge badge-@appt.Status.ToLower()">@appt.Status</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Past Appointments -->
+            @if (Model.PastAppointments.Any())
+            {
+                <div class="card p-6">
+                    <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Past Appointments</h2>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Doctor</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var appt in Model.PastAppointments)
+                                {
+                                    <tr>
+                                        <td>
+                                            <p class="font-medium">Dr. @appt.DoctorName</p>
+                                            <p class="text-xs text-gray-400">@appt.Specialty</p>
+                                        </td>
+                                        <td>@appt.AppointmentDate.ToString("dd MMM yyyy")</td>
+                                        <td><span class="badge badge-@appt.Status.ToLower()">@appt.Status</span></td>
+                                        <td>
+                                            <a asp-controller="Appointment" asp-action="Details"
+                                               asp-route-id="@appt.AppointmentId"
+                                               class="text-primary-600 dark:text-primary-400 text-xs hover:underline">
+                                                View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Quick Actions -->
+            <div class="card p-6">
+                <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+                <div class="space-y-2">
+                    <a asp-controller="Appointment" asp-action="Create"
+                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition group">
+                        <div class="w-9 h-9 bg-primary-100 dark:bg-primary-900/40 rounded-lg flex items-center justify-center group-hover:bg-primary-200 transition">
+                            <i class="fas fa-calendar-plus text-primary-600 dark:text-primary-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Book Appointment</span>
+                    </a>
+                    <a asp-controller="Appointment" asp-action="Index"
+                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition group">
+                        <div class="w-9 h-9 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition">
+                            <i class="fas fa-list text-blue-600 dark:text-blue-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">All Appointments</span>
+                    </a>
+                    <a asp-controller="Home" asp-action="Doctors"
+                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition group">
+                        <div class="w-9 h-9 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition">
+                            <i class="fas fa-user-md text-green-600 dark:text-green-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Browse Doctors</span>
+                    </a>
+                    <a asp-controller="Account" asp-action="Profile"
+                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition group">
+                        <div class="w-9 h-9 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition">
+                            <i class="fas fa-user-edit text-purple-600 dark:text-purple-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Edit Profile</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="card p-6">
+                <h2 class="font-semibold text-gray-900 dark:text-white mb-4">
+                    <i class="fas fa-bell mr-2 text-primary-500"></i>Recent Notifications
+                </h2>
+                @if (!Model.Notifications.Any())
+                {
+                    <p class="text-sm text-gray-400 dark:text-gray-500 text-center py-4">No notifications yet.</p>
+                }
+                else
+                {
+                    <div class="space-y-3">
+                        @foreach (var n in Model.Notifications)
+                        {
+                            <div class="p-3 rounded-xl @(n.IsRead ? "bg-gray-50 dark:bg-gray-700/30" : "bg-primary-50 dark:bg-primary-900/20")">
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">@n.Title</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">@n.Message</p>
+                                <p class="text-xs text-gray-400 mt-1">@n.CreatedAt.ToString("dd MMM · HH:mm")</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

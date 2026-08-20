@@ -1,0 +1,60 @@
+﻿@model HealthConnect.Models.ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 py-16">
+    <div class="max-w-md w-full text-center">
+
+        <!-- Icon -->
+        <div class="flex justify-center mb-6">
+            <div class="w-24 h-24 rounded-full flex items-center justify-center
+                @(Model.StatusCode == 404 ? "bg-yellow-100 dark:bg-yellow-900/30" :
+                  Model.StatusCode == 403 ? "bg-red-100 dark:bg-red-900/30" :
+                  "bg-gray-100 dark:bg-gray-800")">
+                <i class="text-4xl
+                    @(Model.StatusCode == 404 ? "fas fa-search text-yellow-500" :
+                      Model.StatusCode == 403 ? "fas fa-lock text-red-500" :
+                      "fas fa-exclamation-triangle text-gray-400")"></i>
+            </div>
+        </div>
+
+        <!-- Code -->
+        <p class="text-6xl font-bold mb-2
+            @(Model.StatusCode == 404 ? "text-yellow-500" :
+              Model.StatusCode == 403 ? "text-red-500" :
+              "text-gray-400")">
+            @(Model.StatusCode == 0 ? "500" : Model.StatusCode)
+        </p>
+
+        <!-- Message -->
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+            @(Model.StatusCode == 404 ? "Page Not Found" :
+              Model.StatusCode == 403 ? "Access Denied" :
+              "Something Went Wrong")
+        </h1>
+
+        <p class="text-gray-500 dark:text-gray-400 mb-8">
+            @(Model.StatusCode == 404 ? "The page you're looking for doesn't exist or has been moved." :
+              Model.StatusCode == 403 ? "You don't have permission to view this page." :
+              "An unexpected error occurred. Please try again later.")
+        </p>
+
+        @if (Model.ShowRequestId)
+        {
+            <p class="text-xs text-gray-400 dark:text-gray-500 mb-6 font-mono">
+                Request ID: @Model.RequestId
+            </p>
+        }
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a asp-controller="Home" asp-action="Index" class="btn-primary">
+                <i class="fas fa-home mr-2"></i>Go Home
+            </a>
+            <button onclick="history.back()" class="btn-secondary">
+                <i class="fas fa-arrow-left mr-2"></i>Go Back
+            </button>
+        </div>
+    </div>
+</div>

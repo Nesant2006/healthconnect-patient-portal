@@ -1,0 +1,201 @@
+@model HealthConnect.Models.AppointmentCreateViewModel
+@{
+    ViewData["Title"] = "Edit Appointment";
+    var appointmentId = ViewBag.AppointmentId as int? ?? 0;
+}
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+            <li><a asp-controller="Home" asp-action="Dashboard" class="hover:text-primary-600">Dashboard</a></li>
+            <li><i class="fas fa-chevron-right text-xs mx-1"></i></li>
+            <li><a asp-controller="Appointment" asp-action="Index" class="hover:text-primary-600">Appointments</a></li>
+            <li><i class="fas fa-chevron-right text-xs mx-1"></i></li>
+            <li class="text-gray-900 dark:text-white font-medium">Edit</li>
+        </ol>
+    </nav>
+
+    <!-- Notice -->
+    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700
+                rounded-xl p-4 mb-6 flex gap-3">
+        <i class="fas fa-info-circle text-amber-500 mt-0.5 flex-shrink-0"></i>
+        <p class="text-sm text-amber-800 dark:text-amber-300">
+            Editing this appointment will reset its status to <strong>Pending</strong> for review.
+        </p>
+    </div>
+
+    <div class="card p-6 sm:p-8">
+        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="w-10 h-10 bg-primary-100 dark:bg-primary-900/40 rounded-xl
+                        flex items-center justify-center">
+                <i class="fas fa-edit text-primary-600 dark:text-primary-400"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white">Edit Appointment</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Appointment #@appointmentId</p>
+            </div>
+        </div>
+
+        <form asp-controller="Appointment" asp-action="Edit"
+              asp-route-id="@appointmentId"
+              method="post" class="space-y-5" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly"
+                 class="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200
+                        dark:border-red-800 p-4 text-red-800 dark:text-red-300 text-sm"></div>
+
+            <!-- Doctor -->
+            <div>
+                <label asp-for="DoctorId" class="form-label">Doctor</label>
+                <select asp-for="DoctorId" id="doctorSelect" class="form-select">
+                    <option value="">-- Select a doctor --</option>
+                    @if (Model.Doctors != null)
+                    {
+                        var grouped = Model.Doctors.GroupBy(d => d.Specialty);
+                        foreach (var group in grouped)
+                        {
+                            <optgroup label="@group.Key">
+                                @foreach (var doctor in group)
+                                {
+                                    <option value="@doctor.DoctorId"
+                                            data-specialty="@doctor.Specialty"
+                                            data-fee="@doctor.ConsultationFee"
+                                            data-rating="@doctor.Rating">
+                                        Dr. @doctor.FullName — $@doctor.ConsultationFee
+                                    </option>
+                                }
+                            </optgroup>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="DoctorId" class="form-error"></span>
+            </div>
+
+            <!-- Doctor Info Card -->
+            <div id="doctorInfoCard" class="hidden p-4 bg-primary-50 dark:bg-primary-900/20
+                 border border-primary-200 dark:border-primary-700 rounded-xl">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary-100 dark:bg-primary-800 rounded-full
+                                flex items-center justify-center">
+                        <i class="fas fa-user-md text-primary-600 dark:text-primary-400"></i>
+                    </div>
+                    <div>
+                        <p id="infoSpecialty" class="text-sm font-semibold text-primary-700 dark:text-primary-300"></p>
+                        <p id="infoFee" class="text-xs text-primary-600 dark:text-primary-400"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date -->
+            <div>
+                <label asp-for="AppointmentDate" class="form-label">Preferred Date</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 pointer-events-none">
+                        <i class="fas fa-calendar text-sm"></i>
+                    </span>
+                    <input asp-for="AppointmentDate" type="date" id="dateInput"
+                           class="form-input pl-10"
+                           min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")"
+                           max="@DateTime.Today.AddDays(90).ToString("yyyy-MM-dd")" />
+                </div>
+                <span asp-validation-for="AppointmentDate" class="form-error"></span>
+                <p id="weekendWarning" class="hidden mt-1 text-sm text-amber-600 dark:text-amber-400">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>Weekends are not available.
+                </p>
+            </div>
+
+            <!-- Time -->
+            <div>
+                <label asp-for="AppointmentTime" class="form-label">Preferred Time</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 pointer-events-none">
+                        <i class="fas fa-clock text-sm"></i>
+                    </span>
+                    <select asp-for="AppointmentTime" class="form-select pl-10">
+                        <option value="">-- Select a time slot --</option>
+                        @foreach (var slot in Model.AvailableTimeSlots)
+                        {
+                            <option value="@slot">@slot</option>
+                        }
+                    </select>
+                </div>
+                <span asp-validation-for="AppointmentTime" class="form-error"></span>
+            </div>
+
+            <!-- Reason -->
+            <div>
+                <label asp-for="ReasonForVisit" class="form-label">Reason for Visit</label>
+                <textarea asp-for="ReasonForVisit" rows="4"
+                          class="form-input resize-none"
+                          placeholder="Describe your symptoms..."
+                          maxlength="1000" id="reasonText"></textarea>
+                <div class="flex justify-between mt-1">
+                    <span asp-validation-for="ReasonForVisit" class="form-error"></span>
+                    <span class="text-xs text-gray-400" id="reasonCounter">0/1000</span>
+                </div>
+            </div>
+
+            <!-- Urgent -->
+            <div class="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-900/10
+                        border border-red-200 dark:border-red-800/50 rounded-xl">
+                <input asp-for="IsUrgent" type="checkbox"
+                       class="h-4 w-4 mt-0.5 text-red-600 border-gray-300 rounded
+                              focus:ring-red-500 flex-shrink-0" />
+                <div>
+                    <label asp-for="IsUrgent" class="text-sm font-medium text-red-700 dark:text-red-400 cursor-pointer">
+                        Mark as Urgent
+                    </label>
+                    <p class="text-xs text-red-500 mt-0.5">Only if you need immediate attention.</p>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <a asp-controller="Appointment" asp-action="Details"
+                   asp-route-id="@appointmentId" class="btn-secondary text-center flex-1">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </a>
+                <button type="submit" class="btn-primary flex-1">
+                    <i class="fas fa-save mr-2"></i>Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const doctorSelect = document.getElementById('doctorSelect');
+    const infoCard = document.getElementById('doctorInfoCard');
+
+    doctorSelect.addEventListener('change', function () {
+        const opt = this.options[this.selectedIndex];
+        if (!opt.value) { infoCard.classList.add('hidden'); return; }
+        document.getElementById('infoSpecialty').textContent = opt.dataset.specialty || '';
+        document.getElementById('infoFee').textContent = 'Consultation: $' + (opt.dataset.fee || '0');
+        infoCard.classList.remove('hidden');
+    });
+
+    if (doctorSelect.value) doctorSelect.dispatchEvent(new Event('change'));
+
+    document.getElementById('dateInput').addEventListener('change', function () {
+        const d = new Date(this.value + 'T00:00:00');
+        const warn = document.getElementById('weekendWarning');
+        if (d.getDay() === 0 || d.getDay() === 6) {
+            warn.classList.remove('hidden');
+            this.value = '';
+        } else {
+            warn.classList.add('hidden');
+        }
+    });
+
+    const reason = document.getElementById('reasonText');
+    const counter = document.getElementById('reasonCounter');
+    if (reason) {
+        counter.textContent = reason.value.length + '/1000';
+        reason.addEventListener('input', () => counter.textContent = reason.value.length + '/1000');
+    }
+</script>
+}

@@ -1,0 +1,158 @@
+@model HealthConnect.Models.Appointment
+@{
+    ViewData["Title"] = "Appointment Details";
+    var isAdmin = User.IsInRole("Admin");
+}
+
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+            <li><a asp-controller="Home" asp-action="Dashboard" class="hover:text-primary-600">Dashboard</a></li>
+            <li><i class="fas fa-chevron-right text-xs mx-1"></i></li>
+            <li><a asp-controller="Appointment" asp-action="Index" class="hover:text-primary-600">Appointments</a></li>
+            <li><i class="fas fa-chevron-right text-xs mx-1"></i></li>
+            <li class="text-gray-900 dark:text-white font-medium">Details</li>
+        </ol>
+    </nav>
+
+    <div class="card overflow-hidden">
+        <!-- Status Header -->
+        <div class="px-6 py-4 text-white
+            @(Model.Status == "Confirmed" ? "bg-green-500" :
+              Model.Status == "Pending"   ? "bg-yellow-500" :
+              Model.Status == "Completed" ? "bg-blue-500"   : "bg-gray-400")">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm opacity-90">Appointment #@Model.AppointmentId</p>
+                    <h1 class="text-xl font-bold mt-0.5">@Model.Status Appointment</h1>
+                </div>
+                <i class="text-3xl opacity-70 fas
+                    @(Model.Status == "Confirmed" ? "fa-check-circle" :
+                      Model.Status == "Pending"   ? "fa-clock" :
+                      Model.Status == "Completed" ? "fa-clipboard-check" : "fa-times-circle")"></i>
+            </div>
+        </div>
+
+        <!-- Urgent Banner -->
+        @if (Model.IsUrgent)
+        {
+            <div class="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-700
+                        px-6 py-3 flex items-center gap-2 text-red-700 dark:text-red-400">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span class="font-semibold text-sm">Marked as Urgent</span>
+            </div>
+        }
+
+        <div class="p-6 space-y-6">
+            <!-- Doctor -->
+            <div>
+                <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                    <i class="fas fa-user-md mr-1"></i>Doctor
+                </h2>
+                <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                    <div class="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900/40
+                                flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-stethoscope text-primary-600 dark:text-primary-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-900 dark:text-white text-lg">Dr. @Model.DoctorName</p>
+                        <p class="text-primary-600 dark:text-primary-400 text-sm">@Model.Specialty</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-0.5">
+                            <i class="fas fa-dollar-sign mr-1"></i>$@Model.ConsultationFee.ToString("F2")
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date & Time -->
+            <div>
+                <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                    <i class="fas fa-calendar-alt mr-1"></i>Schedule
+                </h2>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl text-center">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Date</p>
+                        <p class="font-bold text-2xl text-gray-900 dark:text-white">@Model.AppointmentDate.Day</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">@Model.AppointmentDate.ToString("MMM yyyy")</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">@Model.AppointmentDate.DayOfWeek</p>
+                    </div>
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl text-center">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Time</p>
+                        <p class="font-bold text-2xl text-gray-900 dark:text-white">@Model.AppointmentTime</p>
+                    </div>
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl text-center">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Booked On</p>
+                        <p class="font-semibold text-gray-900 dark:text-white text-sm">@Model.CreatedAt.ToString("dd MMM yyyy")</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">@Model.CreatedAt.ToString("HH:mm")</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reason -->
+            <div>
+                <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                    <i class="fas fa-notes-medical mr-1"></i>Reason for Visit
+                </h2>
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                    <p class="text-gray-800 dark:text-gray-200 leading-relaxed">
+                        @(string.IsNullOrEmpty(Model.ReasonForVisit) ? "No reason provided." : Model.ReasonForVisit)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Admin Actions -->
+            @if (isAdmin && Model.Status == "Pending")
+            {
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-5">
+                    <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                        <i class="fas fa-cog mr-1"></i>Admin Actions
+                    </h2>
+                    <div class="flex flex-wrap gap-3">
+                        <form asp-controller="Appointment" asp-action="UpdateStatus" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.AppointmentId" />
+                            <input type="hidden" name="status" value="Confirmed" />
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-check mr-2"></i>Confirm
+                            </button>
+                        </form>
+                        <form asp-controller="Appointment" asp-action="UpdateStatus" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.AppointmentId" />
+                            <input type="hidden" name="status" value="Cancelled" />
+                            <button type="submit" class="btn-danger">
+                                <i class="fas fa-times mr-2"></i>Cancel
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/30 border-t border-gray-200
+                    dark:border-gray-700 flex flex-col sm:flex-row gap-3 justify-between">
+            <a asp-controller="Appointment" asp-action="Index" class="btn-secondary text-sm">
+                <i class="fas fa-arrow-left mr-2"></i>Back
+            </a>
+            <div class="flex gap-3">
+                @if (Model.Status == "Pending" || Model.Status == "Confirmed")
+                {
+                    <a asp-controller="Appointment" asp-action="Edit"
+                       asp-route-id="@Model.AppointmentId" class="btn-secondary text-sm">
+                        <i class="fas fa-edit mr-2"></i>Edit
+                    </a>
+                    <form asp-controller="Appointment" asp-action="Cancel" method="post" class="inline"
+                          onsubmit="return confirm('Cancel this appointment?');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.AppointmentId" />
+                        <button type="submit" class="btn-danger text-sm">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

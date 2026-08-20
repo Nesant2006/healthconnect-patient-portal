@@ -1,0 +1,192 @@
+@model HealthConnect.Models.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">System overview and management.</p>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="stat-card">
+            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-users text-blue-600 dark:text-blue-400"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.TotalPatients</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Total Patients</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="w-10 h-10 bg-primary-100 dark:bg-primary-900/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-calendar text-primary-600 dark:text-primary-400"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.TotalAppointments</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Total Appointments</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-clock text-yellow-600 dark:text-yellow-400"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.PendingAppointments</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Pending</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="w-10 h-10 bg-green-100 dark:bg-green-900/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-calendar-day text-green-600 dark:text-green-400"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.TodayAppointments</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Today</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Recent Appointments -->
+        <div class="lg:col-span-2 card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-semibold text-gray-900 dark:text-white">Recent Appointments</h2>
+                <a asp-controller="Admin" asp-action="Appointments"
+                   class="text-primary-600 dark:text-primary-400 text-sm hover:underline">
+                    View all
+                </a>
+            </div>
+
+            @if (!Model.RecentAppointments.Any())
+            {
+                <div class="text-center py-8 text-gray-400 dark:text-gray-500">
+                    <i class="fas fa-calendar-times text-4xl mb-3 block"></i>
+                    <p class="text-sm">No appointments yet.</p>
+                </div>
+            }
+            else
+            {
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var appt in Model.RecentAppointments)
+                            {
+                                <tr>
+                                    <td>
+                                        <p class="font-medium text-gray-900 dark:text-white">@appt.PatientName</p>
+                                    </td>
+                                    <td class="text-sm">Dr. @appt.DoctorName</td>
+                                    <td class="text-sm">@appt.AppointmentDate.ToString("dd MMM")</td>
+                                    <td><span class="badge badge-@appt.Status.ToLower()">@appt.Status</span></td>
+                                    <td>
+                                        @if (appt.Status == "Pending")
+                                        {
+                                            <form asp-controller="Appointment" asp-action="UpdateStatus" method="post" class="inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@appt.AppointmentId" />
+                                                <input type="hidden" name="status" value="Confirmed" />
+                                                <button type="submit" class="text-green-600 dark:text-green-400 text-xs hover:underline">
+                                                    Confirm
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <a asp-controller="Appointment" asp-action="Details"
+                                               asp-route-id="@appt.AppointmentId"
+                                               class="text-primary-600 dark:text-primary-400 text-xs hover:underline">
+                                                View
+                                            </a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Chart -->
+            @if (Model.AppointmentsBySpecialty.Any())
+            {
+                <div class="card p-6">
+                    <h2 class="font-semibold text-gray-900 dark:text-white mb-4">By Specialty</h2>
+                    <canvas id="specialtyChart" height="200"></canvas>
+                </div>
+            }
+
+            <!-- Quick Links -->
+            <div class="card p-6">
+                <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h2>
+                <div class="space-y-2">
+                    <a asp-controller="Admin" asp-action="Appointments"
+                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        <div class="w-8 h-8 bg-primary-100 dark:bg-primary-900/40 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-calendar text-primary-600 dark:text-primary-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">All Appointments</span>
+                    </a>
+                    <a asp-controller="Admin" asp-action="Patients"
+                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-users text-blue-600 dark:text-blue-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Manage Patients</span>
+                    </a>
+                    <a asp-controller="Home" asp-action="Doctors"
+                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-user-md text-green-600 dark:text-green-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">View Doctors</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AppointmentsBySpecialty.Keys));
+    const data   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AppointmentsBySpecialty.Values));
+
+    const ctx = document.getElementById('specialtyChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Appointments',
+                    data,
+                    backgroundColor: '#0ea5e9',
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    }
+</script>
+}

@@ -1,0 +1,131 @@
+﻿@model IEnumerable<HealthConnect.Models.Doctor>
+@{
+    ViewData["Title"] = "Welcome";
+}
+
+<!-- Hero -->
+<section class="bg-gradient-to-br from-primary-600 to-secondary-700 text-white py-16 px-4">
+    <div class="max-w-5xl mx-auto text-center">
+        <h1 class="text-4xl sm:text-5xl font-heading font-bold mb-4">
+            Your Health, Our Priority
+        </h1>
+        <p class="text-primary-100 text-lg sm:text-xl mb-8 max-w-2xl mx-auto">
+            Book appointments with top specialists, manage your health records,
+            and take control of your wellbeing — all in one place.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-controller="Appointment" asp-action="Create" class="btn-primary text-base px-8 py-3">
+                    <i class="fas fa-calendar-plus mr-2"></i>Book Appointment
+                </a>
+                <a asp-controller="Home" asp-action="Dashboard" class="bg-white/20 hover:bg-white/30 text-white font-semibold px-8 py-3 rounded-xl transition text-base">
+                    <i class="fas fa-tachometer-alt mr-2"></i>My Dashboard
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Register" class="btn-primary text-base px-8 py-3">
+                    <i class="fas fa-user-plus mr-2"></i>Get Started Free
+                </a>
+                <a asp-controller="Account" asp-action="Login" class="bg-white/20 hover:bg-white/30 text-white font-semibold px-8 py-3 rounded-xl transition text-base">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                </a>
+            }
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-4 mt-12 max-w-lg mx-auto">
+            <div class="bg-white/10 rounded-2xl p-4">
+                <p class="text-2xl font-bold">50+</p>
+                <p class="text-primary-200 text-sm">Specialists</p>
+            </div>
+            <div class="bg-white/10 rounded-2xl p-4">
+                <p class="text-2xl font-bold">10k+</p>
+                <p class="text-primary-200 text-sm">Patients</p>
+            </div>
+            <div class="bg-white/10 rounded-2xl p-4">
+                <p class="text-2xl font-bold">4.9★</p>
+                <p class="text-primary-200 text-sm">Rating</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-14 px-4 bg-white dark:bg-gray-800">
+    <div class="max-w-5xl mx-auto">
+        <h2 class="text-2xl sm:text-3xl font-heading font-bold text-center text-gray-900 dark:text-white mb-10">
+            How It Works
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            @foreach (var step in new[] {
+                ("fa-user-plus",    "1. Register",        "Create your free account in under 2 minutes."),
+                ("fa-search",       "2. Find a Doctor",   "Browse specialists by specialty and availability."),
+                ("fa-calendar-check","3. Book & Attend",  "Pick a time slot and attend your appointment.")
+            })
+            {
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-primary-100 dark:bg-primary-900/40 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas @step.Item1 text-2xl text-primary-600 dark:text-primary-400"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-2">@step.Item2</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">@step.Item3</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Featured Doctors -->
+@if (Model?.Any() == true)
+{
+    <section class="py-14 px-4 bg-gray-50 dark:bg-gray-900">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl sm:text-3xl font-heading font-bold text-gray-900 dark:text-white">
+                    Featured Doctors
+                </h2>
+                <a asp-controller="Home" asp-action="Doctors"
+                   class="text-primary-600 dark:text-primary-400 text-sm font-medium hover:underline">
+                    View all <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach (var doctor in Model)
+                {
+                    <div class="card p-5 hover:shadow-lg transition-shadow">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-secondary-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                                @doctor.FullName.FirstOrDefault()
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-900 dark:text-white">Dr. @doctor.FullName</p>
+                                <span class="text-xs bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 px-2 py-0.5 rounded-full">
+                                    @doctor.Specialty
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-1 mb-3">
+                            @for (int i = 0; i < 5; i++)
+                            {
+                                <i class="fas fa-star text-xs @(i < Math.Round(doctor.Rating) ? "text-yellow-400" : "text-gray-200 dark:text-gray-600")"></i>
+                            }
+                            <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">@doctor.Rating.ToString("F1")</span>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+                            <span class="font-bold text-gray-900 dark:text-white">$@doctor.ConsultationFee.ToString("F0")</span>
+                            <a asp-controller="Appointment" asp-action="Create" asp-route-doctorId="@doctor.DoctorId"
+                               class="btn-primary text-xs px-3 py-1.5">
+                                Book Now
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
